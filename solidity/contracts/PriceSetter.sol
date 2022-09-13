@@ -7,6 +7,9 @@ error PriceSetter__SymbolCantBeEmpty();
 contract PriceSetter {
     mapping(string => uint256) public priceOf;
 
+    // percent of minimum price difference
+    uint256 public constant MIN_DIF = 2;
+
     event PriceChange(string indexed symbol, uint256 price);
 
     modifier hasSymbol(string calldata _symbol) {
@@ -18,7 +21,7 @@ contract PriceSetter {
      * @notice change the current price of a specific symbol
      * @param _symbol the symbol for which to change the price
      * @param _price the new price to be set
-     * @dev new price difference needs to be higher that 2%
+     * @dev new price difference needs to be higher than MIN_DIF
      */
     function set(string calldata _symbol, uint256 _price)
         public
@@ -26,7 +29,7 @@ contract PriceSetter {
     {
         uint256 currentPrice = priceOf[_symbol];
 
-        if (getAbsDifference(currentPrice, _price) * 100 <= currentPrice * 2) {
+        if (getAbsDifference(currentPrice, _price) * 100 <= currentPrice * MIN_DIF) {
             revert PriceSetter__InsufficientPriceDifference();
         }
 
