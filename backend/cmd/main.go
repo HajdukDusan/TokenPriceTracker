@@ -76,17 +76,20 @@ func updatePrices(client *ethclient.Client, contract *api.Api) {
 			coins[key] = int64(price)
 		}
 
+		coins["ethereum"] = 10000
+
 		for key, value := range coins {
 
 			auth := getAccountAuth(client, "7083aa8f4b536231bd55aa9bd49277cb03ce3ea0de097e273d529e89107196e7")
 
-			reply, err := contract.Set(auth, key, big.NewInt(value))
+			tx, err := contract.Set(auth, key, big.NewInt(value))
 			if err != nil {
-				fmt.Println("Tx Failed!")
+				fmt.Println("Failed to send tx!")
 				fmt.Println(err)
+			} else {
+				fmt.Printf("Tx successfully sent: %s\n", tx.Hash().Hex())
 			}
 
-			fmt.Println(reply)
 		}
 
 		time.Sleep(60 * time.Second)
@@ -106,8 +109,6 @@ type PriceChangeEvent struct {
 	Symbol string
 	Price  *big.Int
 }
-
-// var lastBlock = 
 
 func fetchEvents(client *ethclient.Client, fromBlock int64, toBlock int64) {
 
@@ -132,8 +133,8 @@ func fetchEvents(client *ethclient.Client, fromBlock int64, toBlock int64) {
 	}
 
 	for _, vLog := range logs {
-        fmt.Printf("Log Block Number: %d\n", vLog.BlockNumber)
-        fmt.Printf("Log Index: %d\n", vLog.Index)
+		fmt.Printf("Log Block Number: %d\n", vLog.BlockNumber)
+		fmt.Printf("Log Index: %d\n", vLog.Index)
 
 		var transferEvent PriceChangeEvent
 
@@ -142,23 +143,17 @@ func fetchEvents(client *ethclient.Client, fromBlock int64, toBlock int64) {
 			log.Fatal(err)
 		}
 
-		fmt.Println(crypto.Keccak256Hash([]byte("ethereum")).Hex()) 
+		fmt.Println(crypto.Keccak256Hash([]byte("ethereum")).Hex())
 
 		transferEvent.Symbol = vLog.Topics[1].Hex()
 
 		fmt.Printf("Symbol: %s\n", transferEvent.Symbol)
 		fmt.Printf("Price: %s\n", transferEvent.Price.String())
 
-
-        fmt.Printf("\n\n")
-    }
+		fmt.Printf("\n\n")
+	}
 }
 
-func covertStringByte32(t string) [32]byte {
-	var b32 [32]byte
-	copy(b32[:], []byte(t))
-	return b32
-   }
 
 func main() {
 
@@ -176,14 +171,13 @@ func main() {
 		panic(err)
 	}
 
-	currBlock, err := client.BlockNumber(context.Background())
-	if err != nil {
-		panic(err)
-	}
 
-	fetchEvents(client, 0, int64(currBlock))
+	// currBlock, err := client.BlockNumber(context.Background())
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	return
+	// fetchEvents(client, 0, int64(currBlock))
 
 	e := echo.New()
 
@@ -205,7 +199,7 @@ func main() {
 	})
 
 	// launch goroutines
-	go updatePrices(client, contract)
+	go updatePrices(client,contract)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
@@ -226,23 +220,36 @@ func getAccountAuth(client *ethclient.Client, privateKeyAddress string) *bind.Tr
 	}
 
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println("nounce=", nonce)
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		panic(err)
+	}
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		panic(err)
 	}
 
-	auth := bind.NewKeyedTransactor(privateKey)
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Suggested Gas Price: " + gasPrice.String())
 
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0)      // in wei
 	auth.GasLimit = uint64(3000000) // in units
-	auth.GasPrice = gasPrice
+
+	// gasPrice x2 for fast mining
+	auth.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(2))
 
 	return auth
 }
