@@ -1,0 +1,7 @@
+run:
+	go run main.go
+
+sol:
+	solcjs --optimize --abi ./contracts/PriceSetter.sol -o build
+	solcjs --optimize --bin ./contracts/PriceSetter.sol -o build
+	abigen --abi=./build/PriceSetter.abi --bin=./build/PriceSetter.bin --pkg=api --out=./api/PriceSetter.go
