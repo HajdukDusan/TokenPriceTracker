@@ -49,7 +49,7 @@ func Start(contractAddress string) {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid query values")
 		}
 
-		events, err := blockchain.FetchEventsBySymbolsAndTimeStamp(
+		events, err := blockchain.FetchDTOEvents(
 			contractAddress,
 			fromTimestamp,
 			toTimestamp,

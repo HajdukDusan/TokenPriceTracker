@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"backendtask/api"
+	"backendtask/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -22,7 +23,7 @@ type PriceChangeEvent struct {
 
 type PriceChangeEventDTO struct {
 	Symbol string
-	Price int64
+	Price float64
 }
 
 
@@ -32,7 +33,7 @@ func (pce PriceChangeEvent) Print() {
 }
 
 
-func FetchEventsBySymbolsAndTimeStamp(contractAddress string, fromTimestamp int64, toTimestamp int64, symbols []string) ([]PriceChangeEventDTO, error) {
+func FetchDTOEvents(contractAddress string, fromTimestamp int64, toTimestamp int64, symbols []string) ([]PriceChangeEventDTO, error) {
 
 	// TODO TIMESTAMPS
 
@@ -63,9 +64,15 @@ func FetchEventsBySymbolsAndTimeStamp(contractAddress string, fromTimestamp int6
 
 	// get symbol from symbolHashMap with symbol hash as key 
 	for indx, event := range events {
+
+		priceFloat, err := utils.ScaleIntToFloat(event.Price.Int64())
+		if err != nil {
+			return nil, err
+		}
+
 		eventsDTO[indx] = PriceChangeEventDTO{
 			Symbol: symbolHashMap[event.SymbolHash],
-			Price: event.Price.Int64(),
+			Price: priceFloat,
 		}
 	}
 

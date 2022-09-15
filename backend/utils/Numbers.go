@@ -4,6 +4,7 @@ import (
 	"backendtask/config"
 	"errors"
 	"strconv"
+	"strings"
 )
 
 func ScaleFloatToInt(num float64) (int64, error) {
@@ -34,4 +35,15 @@ func ScaleFloatToInt(num float64) (int64, error) {
 	}
 
 	return result, nil
+}
+
+func ScaleIntToFloat(num int64) (float64, error) {
+
+	int_str := strings.Repeat("0", config.DecimalPoints) + strconv.FormatInt(num, 10)
+
+	comma_point := len(int_str)-config.DecimalPoints
+
+	float_str := int_str[:comma_point] + "." + int_str[comma_point:] 
+
+	return strconv.ParseFloat(float_str, 64)
 }
