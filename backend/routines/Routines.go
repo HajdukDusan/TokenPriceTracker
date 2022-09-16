@@ -14,6 +14,8 @@ import (
 
 func UpdatePrices(coins map[string]int64) {
 
+	TxBlockSender := blockchain.InitializeTxBlockSender()
+
 	for true {
 
 		ids := ""
@@ -72,7 +74,7 @@ func UpdatePrices(coins map[string]int64) {
 
 		fmt.Println()
 
-		SendTx := blockchain.SendTxBlock()
+		SendTx := TxBlockSender()
 
 		for key, value := range coins {
 

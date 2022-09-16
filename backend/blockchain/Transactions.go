@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -15,47 +14,63 @@ import (
 )
 
 // higher-order func
-func SendTxBlock() func(string, *big.Int) (*types.Transaction, error) {
 
-	auth, err := getAccountAuth(PrivateKey)
-	if err != nil {
-		fmt.Println(err)
-	}
+func InitializeTxBlockSender() func() func(string, *big.Int) (*types.Transaction, error) {
 
-	// sentTransactions := make(map[string])
+	var sentTransactions []chan bool
 
-	return func(symbol string, price *big.Int) (*types.Transaction, error) {
-		fmt.Println("\nSending with:")
-		fmt.Println("nonce = ", auth.Nonce)
-		fmt.Println("gasPrice = ", auth.GasPrice)
-		tx, err := PriceSetterContract.SetSymbolPrice(auth, symbol, price)
-		if err != nil {
-			return nil, err
+	return func() func(string, *big.Int) (*types.Transaction, error) {
+
+		//cancel all routines that are waiting for pending transactions
+		for indx := range sentTransactions {
+			sentTransactions[indx] <- true
 		}
 
-		
+		// empty the array
+		sentTransactions = make([]chan bool, 0)
 
-		// if tx was sent into the mempool we inc the nonce
-		auth.Nonce.Add(auth.Nonce, big.NewInt(1))
+		auth, err := getAccountAuth(PrivateKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 
-		return tx, nil
+		return func(symbol string, price *big.Int) (*types.Transaction, error) {
+
+			fmt.Println("\nSending with:")
+			fmt.Println("nonce = ", auth.Nonce)
+			fmt.Println("gasPrice = ", auth.GasPrice)
+
+			tx, err := PriceSetterContract.SetSymbolPrice(auth, symbol, price)
+			if err != nil {
+				return nil, err
+			}
+
+			// make a routine that waits for the pending tx
+			sentTransactions = append(sentTransactions, waitTxConfirmed(tx.Hash()))
+
+			// if tx was sent into the mempool we inc the nonce
+			auth.Nonce.Add(auth.Nonce, big.NewInt(1))
+
+			return tx, nil
+		}
 	}
 }
 
-// func main() {
-//     number := Generator()
-//     fmt.Println(<-number)
-//     fmt.Println(<-number)
-//     number <- 0           // stops underlying goroutine
-//     fmt.Println(<-number) // error, no one is sending anymore
-//     // …
-// }
-
-// Returns a channel that blocks until the transaction is confirmed
 func waitTxConfirmed(hash common.Hash) chan bool{
 	ch := make(chan bool)
 	go func() {
 		for {
+
+			select {
+				case ch <- n: {
+					
+				}
+				case <-ch: {
+					fmt.Println("Tx stopped!")
+					break
+				}
+            }
+
 			_, pending, err := Client.TransactionByHash(context.Background(), hash)
 
 			if err != nil {
@@ -63,11 +78,11 @@ func waitTxConfirmed(hash common.Hash) chan bool{
 				break
 			}
 			if !pending {
-				fmt.Println("Tx Finished! hash: ", hash.Hex())
+				fmt.Println("Tx confirmed!")
 				break
 			}
-			time.Sleep(time.Millisecond * 500)
 		}
+		fmt.Println("Tx hash: ", hash.Hex())
 	}()
 	return ch
 }
