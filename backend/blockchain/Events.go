@@ -2,7 +2,7 @@ package blockchain
 
 import (
 	"backendtask/api"
-	"backendtask/utils"
+	"backendtask/model"
 	"context"
 	"errors"
 	"fmt"
@@ -13,71 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 )
-
-type PriceChangeEvent struct {
-	SymbolHash string
-	Price  *big.Int
-}
-
-type PriceChangeEventDTO struct {
-	Symbol string
-	Price float64
-}
-
-
-func (pce PriceChangeEvent) Print() {
-	fmt.Printf("Symbol: %s\n", pce.SymbolHash)
-	fmt.Printf("Price: %s\n", pce.Price.String())
-}
-
-
-func FetchDTOEvents(contractAddress string, fromTimestamp int64, toTimestamp int64, symbols []string) ([]PriceChangeEventDTO, error) {
-
-	// TODO TIMESTAMPS
-
-	indexedValues := make([]common.Hash, len(symbols))
-	symbolHashMap := make(map[string]string)
-
-	// hash the array of symbols because they are indexed in events
-	for indx := range symbols {
-		hash := crypto.Keccak256Hash([]byte(symbols[indx]))
-		indexedValues[indx] = hash
-		symbolHashMap[hash.Hex()] = symbols[indx]
-	}
-
-	events, err := fetchEvents(
-		[]common.Address{common.HexToAddress(contractAddress)},
-		nil,
-		nil,
-		[][]common.Hash{
-			{},
-			indexedValues,
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	eventsDTO := make([]PriceChangeEventDTO, len(events))
-
-	// get symbol from symbolHashMap with symbol hash as key 
-	for indx, event := range events {
-
-		priceFloat, err := utils.ScaleIntToFloat(event.Price.Int64())
-		if err != nil {
-			return nil, err
-		}
-
-		eventsDTO[indx] = PriceChangeEventDTO{
-			Symbol: symbolHashMap[event.SymbolHash],
-			Price: priceFloat,
-		}
-	}
-
-	return eventsDTO, nil
-}
 
 // Examples:
 // {} or nil          matches any topic list
@@ -86,7 +22,12 @@ func FetchDTOEvents(contractAddress string, fromTimestamp int64, toTimestamp int
 // {{A}, {B}}         matches topic A in first position AND B in second position
 // {{A, B}, {C, D}}   matches topic (A OR B) in first position AND (C OR D) in second position
 
-func fetchEvents(addresses []common.Address, fromBlock *big.Int, toBlock *big.Int, indexedValues [][]common.Hash) ([]PriceChangeEvent, error) {
+func FetchEvents(
+	addresses []common.Address,
+	fromBlock *big.Int,
+	toBlock *big.Int,
+	indexedValues [][]common.Hash,
+) ([]model.PriceChangeEvent, error) {
 
 	// check if the rpc conn is initialized
 	if Client == nil {
@@ -119,21 +60,19 @@ func fetchEvents(addresses []common.Address, fromBlock *big.Int, toBlock *big.In
 		log.Fatal(err)
 	}
 
-	events := make([]PriceChangeEvent, len(logs))
+	events := make([]model.PriceChangeEvent, len(logs))
 
 	for indx, vLog := range logs {
-		fmt.Printf("Log Block Number: %d\n", vLog.BlockNumber)
 
-		var event PriceChangeEvent
+		var event model.PriceChangeEvent
 
 		err := contractAbi.UnpackIntoInterface(&event, "PriceChange", vLog.Data)
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		event.BlockNumber = vLog.BlockNumber
 		event.SymbolHash = vLog.Topics[1].Hex()
-
-		event.Print()
 
 		events[indx] = event
 	}

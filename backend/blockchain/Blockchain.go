@@ -1,12 +1,17 @@
 package blockchain
 
 import (
+	"backendtask/api"
+
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 var Client *ethclient.Client
+var PriceSetterContract Contract
+var PrivateKey string
 
-func Connect(rpcUrl string) {
+func Connect(rpcUrl string, contractAddress string, privateKey string) {
 
 	var err error
 
@@ -16,11 +21,16 @@ func Connect(rpcUrl string) {
 		panic(err)
 	}
 
-	// address := common.HexToAddress("0xCf72bbDc50e2a360F175441D9748271DFd4DC3AA")
+	address := common.HexToAddress(contractAddress)
 
 	// creating api object to intract with smart contract function
-	// contract, err := api.NewApi(address, client)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	api, err := api.NewApi(address, Client)
+	if err != nil {
+		panic(err)
+	}
+
+	PriceSetterContract = Contract{api}
+
+	PrivateKey = privateKey
 }
+
