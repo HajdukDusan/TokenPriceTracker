@@ -30,8 +30,8 @@ var (
 
 // ApiMetaData contains all meta data concerning the Api contract.
 var ApiMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"name\":\"PriceSetter__InsufficientPriceDifference\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"PriceSetter__SymbolCantBeEmpty\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"name\":\"PriceChange\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MIN_DIF\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"name\":\"priceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_symbol\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"}],\"name\":\"set\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561001057600080fd5b5061038d806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80638a42ebe914610046578063ab9a78df1461005b578063e7926e7b14610098575b600080fd5b6100596100543660046101c8565b6100a0565b005b610086610069366004610256565b805160208183018101805160008252928201919093012091525481565b60405190815260200160405180910390f35b610086600281565b828260008190036100c4576040516303c8340b60e41b815260040160405180910390fd5b60008086866040516100d7929190610307565b9081526040519081900360200190205490506100f460028261032d565b6100fe828661019c565b61010990606461032d565b1161012757604051631fecbef960e01b815260040160405180910390fd5b836000878760405161013a929190610307565b9081526040519081900360200181209190915561015a9087908790610307565b604051908190038120858252907faf0b3c558c126d46d4e7d77be350be2aa80a5fcaa4513f906b2878d5058be6f39060200160405180910390a2505050505050565b6000818310156101b5576101b08383610344565b6101bf565b6101bf8284610344565b90505b92915050565b6000806000604084860312156101dd57600080fd5b833567ffffffffffffffff808211156101f557600080fd5b818601915086601f83011261020957600080fd5b81358181111561021857600080fd5b87602082850101111561022a57600080fd5b6020928301989097509590910135949350505050565b634e487b7160e01b600052604160045260246000fd5b60006020828403121561026857600080fd5b813567ffffffffffffffff8082111561028057600080fd5b818401915084601f83011261029457600080fd5b8135818111156102a6576102a6610240565b604051601f8201601f19908116603f011681019083821181831017156102ce576102ce610240565b816040528281528760208487010111156102e757600080fd5b826020860160208301376000928101602001929092525095945050505050565b8183823760009101908152919050565b634e487b7160e01b600052601160045260246000fd5b80820281158282048414176101c2576101c2610317565b818103818111156101c2576101c261031756fea26469706673582212202be5139e33eacb07704bd5b9897886873fe1f5874f9781583e2c887a06ced8f064736f6c63430008110033",
+	ABI: "[{\"inputs\":[],\"name\":\"PriceSetter__InsufficientPriceDifference\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"PriceSetter__SymbolCantBeEmpty\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"PriceChange\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MIN_DIF\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"name\":\"priceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_symbol\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"}],\"name\":\"set\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561001057600080fd5b50610392806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80638a42ebe914610046578063ab9a78df1461005b578063e7926e7b14610098575b600080fd5b6100596100543660046101cd565b6100a0565b005b61008661006936600461025b565b805160208183018101805160008252928201919093012091525481565b60405190815260200160405180910390f35b610086600281565b828260008190036100c4576040516303c8340b60e41b815260040160405180910390fd5b60008086866040516100d792919061030c565b9081526040519081900360200190205490506100f4600282610332565b6100fe82866101a1565b610109906064610332565b1161012757604051631fecbef960e01b815260040160405180910390fd5b836000878760405161013a92919061030c565b9081526040519081900360200181209190915561015a908790879061030c565b60408051918290038220868352426020840152917feff87fbb70cdf1275d2da00eaaa9ea0fdb7cbdd63cd5660e9e01ffc0a0243ec9910160405180910390a2505050505050565b6000818310156101ba576101b58383610349565b6101c4565b6101c48284610349565b90505b92915050565b6000806000604084860312156101e257600080fd5b833567ffffffffffffffff808211156101fa57600080fd5b818601915086601f83011261020e57600080fd5b81358181111561021d57600080fd5b87602082850101111561022f57600080fd5b6020928301989097509590910135949350505050565b634e487b7160e01b600052604160045260246000fd5b60006020828403121561026d57600080fd5b813567ffffffffffffffff8082111561028557600080fd5b818401915084601f83011261029957600080fd5b8135818111156102ab576102ab610245565b604051601f8201601f19908116603f011681019083821181831017156102d3576102d3610245565b816040528281528760208487010111156102ec57600080fd5b826020860160208301376000928101602001929092525095945050505050565b8183823760009101908152919050565b634e487b7160e01b600052601160045260246000fd5b80820281158282048414176101c7576101c761031c565b818103818111156101c7576101c761031c56fea2646970667358221220a0e4ba4694ea868058a7554ea4520698d38d772b82f6329571bca4e78ac50d3a64736f6c63430008110033",
 }
 
 // ApiABI is the input ABI used to generate the binding from.
@@ -353,14 +353,15 @@ func (it *ApiPriceChangeIterator) Close() error {
 
 // ApiPriceChange represents a PriceChange event raised by the Api contract.
 type ApiPriceChange struct {
-	Symbol common.Hash
-	Price  *big.Int
-	Raw    types.Log // Blockchain specific contextual infos
+	Symbol    common.Hash
+	Price     *big.Int
+	Timestamp *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterPriceChange is a free log retrieval operation binding the contract event 0xaf0b3c558c126d46d4e7d77be350be2aa80a5fcaa4513f906b2878d5058be6f3.
+// FilterPriceChange is a free log retrieval operation binding the contract event 0xeff87fbb70cdf1275d2da00eaaa9ea0fdb7cbdd63cd5660e9e01ffc0a0243ec9.
 //
-// Solidity: event PriceChange(string indexed symbol, uint256 price)
+// Solidity: event PriceChange(string indexed symbol, uint256 price, uint256 timestamp)
 func (_Api *ApiFilterer) FilterPriceChange(opts *bind.FilterOpts, symbol []string) (*ApiPriceChangeIterator, error) {
 
 	var symbolRule []interface{}
@@ -375,9 +376,9 @@ func (_Api *ApiFilterer) FilterPriceChange(opts *bind.FilterOpts, symbol []strin
 	return &ApiPriceChangeIterator{contract: _Api.contract, event: "PriceChange", logs: logs, sub: sub}, nil
 }
 
-// WatchPriceChange is a free log subscription operation binding the contract event 0xaf0b3c558c126d46d4e7d77be350be2aa80a5fcaa4513f906b2878d5058be6f3.
+// WatchPriceChange is a free log subscription operation binding the contract event 0xeff87fbb70cdf1275d2da00eaaa9ea0fdb7cbdd63cd5660e9e01ffc0a0243ec9.
 //
-// Solidity: event PriceChange(string indexed symbol, uint256 price)
+// Solidity: event PriceChange(string indexed symbol, uint256 price, uint256 timestamp)
 func (_Api *ApiFilterer) WatchPriceChange(opts *bind.WatchOpts, sink chan<- *ApiPriceChange, symbol []string) (event.Subscription, error) {
 
 	var symbolRule []interface{}
@@ -417,9 +418,9 @@ func (_Api *ApiFilterer) WatchPriceChange(opts *bind.WatchOpts, sink chan<- *Api
 	}), nil
 }
 
-// ParsePriceChange is a log parse operation binding the contract event 0xaf0b3c558c126d46d4e7d77be350be2aa80a5fcaa4513f906b2878d5058be6f3.
+// ParsePriceChange is a log parse operation binding the contract event 0xeff87fbb70cdf1275d2da00eaaa9ea0fdb7cbdd63cd5660e9e01ffc0a0243ec9.
 //
-// Solidity: event PriceChange(string indexed symbol, uint256 price)
+// Solidity: event PriceChange(string indexed symbol, uint256 price, uint256 timestamp)
 func (_Api *ApiFilterer) ParsePriceChange(log types.Log) (*ApiPriceChange, error) {
 	event := new(ApiPriceChange)
 	if err := _Api.contract.UnpackLog(event, "PriceChange", log); err != nil {

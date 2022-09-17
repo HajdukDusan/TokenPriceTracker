@@ -14,8 +14,6 @@ import (
 
 func UpdatePrices(coins map[string]int64) {
 
-	TxBlockSender := blockchain.InitializeTxBlockSender()
-
 	for true {
 
 		ids := ""
@@ -74,18 +72,30 @@ func UpdatePrices(coins map[string]int64) {
 
 		fmt.Println()
 
-		SendTx := TxBlockSender()
+		// Init the block of txs
+		SendTx := blockchain.CreateTxBlock()
 
-		for key, value := range coins {
+		for symbol, price := range coins {
 
-			tx, err := SendTx(key, big.NewInt(value))
+			// get symbol price from contract
+			contractPrice, err := blockchain.PriceSetterContract.GetSymbolPrice(symbol)
 			if err != nil {
-				fmt.Println("Failed to send tx!")
 				fmt.Println(err)
-			} else {
-				fmt.Printf("Tx successfully sent: %s\n", tx.Hash().Hex())
 			}
 
+			absDif := utils.GetAbs(big.NewInt(0).Sub(contractPrice, big.NewInt(price)))
+
+			minDif := big.NewInt(2)
+
+			if absDif.Mul(absDif, big.NewInt(100)).Cmp(minDif.Mul(contractPrice, minDif)) == 1 {
+				tx, err := SendTx(symbol, big.NewInt(price))
+				if err != nil {
+					fmt.Println("Failed to send tx!")
+					fmt.Println(err)
+				} else {
+					fmt.Printf("Tx successfully sent: %s\n", tx.Hash().Hex())
+				}
+			}
 		}
 
 		// stop thread for config.UpdateInterval seconds

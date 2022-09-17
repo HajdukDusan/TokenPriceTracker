@@ -2,6 +2,7 @@ package server
 
 import (
 	"backendtask/config"
+	"math/big"
 	"net/http"
 	"strconv"
 
@@ -35,8 +36,8 @@ func CreateSymbolPriceHistoryEndpoint(e *echo.Echo, priceSetterAddress string) {
 
 		events, err := FetchDTOEvents(
 			priceSetterAddress,
-			fromTimestamp,
-			toTimestamp,
+			big.NewInt(fromTimestamp),
+			big.NewInt(toTimestamp),
 			[]string{symbol},
 		)
 		if err != nil {

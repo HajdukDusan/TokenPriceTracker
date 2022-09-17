@@ -3,6 +3,7 @@ package utils
 import (
 	"backendtask/config"
 	"errors"
+	"math/big"
 	"strconv"
 	"strings"
 )
@@ -46,4 +47,11 @@ func ScaleIntToFloat(num int64) (float64, error) {
 	float_str := int_str[:comma_point] + "." + int_str[comma_point:] 
 
 	return strconv.ParseFloat(float_str, 64)
+}
+
+func GetAbs(num *big.Int) *big.Int {
+	if num.Cmp(big.NewInt(0)) == -1 {
+		num.Neg(num)
+	}
+	return num
 }

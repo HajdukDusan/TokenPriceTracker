@@ -1,7 +1,7 @@
 package config
 
 // Number of decimal points for prices
-var DecimalPoints int = 4
+var DecimalPoints int = 8
 
 // Time between coinGecko price fetchings in seconds
 var UpdateInterval int = 60
@@ -11,4 +11,7 @@ var UpdateInterval int = 60
 var Symbols = []string{
 	"ethereum",
 	"bitcoin",
+	"tether",
+	"litecoin",
+	"decentraland",
 }

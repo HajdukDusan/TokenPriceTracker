@@ -8,86 +8,44 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// higher-order func
+// CreateTxBlock is a higher-order function for sending multiple transactions.
+//
+// This function will ensure that transactions dont get stuck in the pending state
+// when we send the TxBlock again.
+//
+// The next TxBlock will override pending transactions of the previous block.
+//
+// Params of the anonymous function are contract call params.
+func CreateTxBlock() func(string, *big.Int) (*types.Transaction, error) {
 
-func InitializeTxBlockSender() func() func(string, *big.Int) (*types.Transaction, error) {
+	auth, err := getAccountAuth(PrivateKey)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	var sentTransactions []chan bool
+	return func(symbol string, price *big.Int) (*types.Transaction, error) {
 
-	return func() func(string, *big.Int) (*types.Transaction, error) {
+		fmt.Println("\nSending with:")
+		fmt.Println("nonce = ", auth.Nonce)
+		fmt.Println("gasPrice = ", auth.GasPrice)
 
-		//cancel all routines that are waiting for pending transactions
-		for indx := range sentTransactions {
-			sentTransactions[indx] <- true
-		}
-
-		// empty the array
-		sentTransactions = make([]chan bool, 0)
-
-		auth, err := getAccountAuth(PrivateKey)
+		tx, err := PriceSetterContract.SetSymbolPrice(auth, symbol, price)
 		if err != nil {
-			fmt.Println(err)
+			return nil, err
 		}
 
-		return func(symbol string, price *big.Int) (*types.Transaction, error) {
+		// if tx was sent into the mempool we inc the nonce
+		auth.Nonce.Add(auth.Nonce, big.NewInt(1))
 
-			fmt.Println("\nSending with:")
-			fmt.Println("nonce = ", auth.Nonce)
-			fmt.Println("gasPrice = ", auth.GasPrice)
-
-			tx, err := PriceSetterContract.SetSymbolPrice(auth, symbol, price)
-			if err != nil {
-				return nil, err
-			}
-
-			// make a routine that waits for the pending tx
-			sentTransactions = append(sentTransactions, waitTxConfirmed(tx.Hash()))
-
-			// if tx was sent into the mempool we inc the nonce
-			auth.Nonce.Add(auth.Nonce, big.NewInt(1))
-
-			return tx, nil
-		}
+		return tx, nil
 	}
 }
 
-func waitTxConfirmed(hash common.Hash) chan bool{
-	ch := make(chan bool)
-	go func() {
-		for {
-
-			select {
-				case ch <- n: {
-					
-				}
-				case <-ch: {
-					fmt.Println("Tx stopped!")
-					break
-				}
-            }
-
-			_, pending, err := Client.TransactionByHash(context.Background(), hash)
-
-			if err != nil {
-				fmt.Println("Tx finished with error: ", err)
-				break
-			}
-			if !pending {
-				fmt.Println("Tx confirmed!")
-				break
-			}
-		}
-		fmt.Println("Tx hash: ", hash.Hex())
-	}()
-	return ch
-}
-
-// function to create auth for any account from its private key
+// Function to create auth from privateKey
 func getAccountAuth(privateKey string) (*bind.TransactOpts, error) {
 
 	// check if the rpc conn is initialized
@@ -134,7 +92,8 @@ func getAccountAuth(privateKey string) (*bind.TransactOpts, error) {
 	auth.GasLimit = uint64(3000000) // in units
 
 	// gasPrice x2 for fast mining
-	auth.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(2))
+	// auth.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(2))
+	auth.GasPrice = gasPrice
 
 	return auth, nil
 }

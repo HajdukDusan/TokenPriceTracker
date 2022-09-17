@@ -10,7 +10,7 @@ contract PriceSetter {
     // percent of minimum price difference
     uint256 public constant MIN_DIF = 2;
 
-    event PriceChange(string indexed symbol, uint256 price);
+    event PriceChange(string indexed symbol, uint256 price, uint256 timestamp);
 
     modifier hasSymbol(string calldata _symbol) {
         if (bytes(_symbol).length == 0) revert PriceSetter__SymbolCantBeEmpty();
@@ -35,7 +35,7 @@ contract PriceSetter {
 
         priceOf[_symbol] = _price;
 
-        emit PriceChange(_symbol, _price);
+        emit PriceChange(_symbol, _price, block.timestamp);
     }
 
     /*

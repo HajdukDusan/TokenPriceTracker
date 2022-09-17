@@ -15,13 +15,17 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Examples:
-// {} or nil          matches any topic list
-// {{A}}              matches topic A in first position
-// {{}, {B}}          matches any topic in first position AND B in second position
-// {{A}, {B}}         matches topic A in first position AND B in second position
-// {{A, B}, {C, D}}   matches topic (A OR B) in first position AND (C OR D) in second position
-
+// Is used to fetch contract PriceChange events.
+//
+// Params:
+//
+// - List of contract addresses to be scanned for events.
+//
+// - Block to start scanning from (nil will start from 0).
+//
+// - Block to end scanning (nil refers to the currentBlock).
+//
+// - Matrix for topics (indexed fields of events).
 func FetchEvents(
 	addresses []common.Address,
 	fromBlock *big.Int,

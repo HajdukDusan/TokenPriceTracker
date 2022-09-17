@@ -1,0 +1,78 @@
+{
+	"info": {
+		"_postman_id": "c08ae7e9-7f3b-493d-86b5-f2daf32259ab",
+		"name": "Backend API Calls",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17940358"
+	},
+	"item": [
+		{
+			"name": "Fetch Bitcoin Price Change Events Between Timestamps",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:1323/api/history?symbol=bitcoin&from=1663405160&to=1663405165",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1323",
+					"path": [
+						"api",
+						"history"
+					],
+					"query": [
+						{
+							"key": "symbol",
+							"value": "bitcoin"
+						},
+						{
+							"key": "from",
+							"value": "1663405160"
+						},
+						{
+							"key": "to",
+							"value": "1663405165"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Ethereum Price Change Events Between Timestamps",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:1323/api/history?symbol=ethereum&from=100&to=2000000000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1323",
+					"path": [
+						"api",
+						"history"
+					],
+					"query": [
+						{
+							"key": "symbol",
+							"value": "ethereum"
+						},
+						{
+							"key": "from",
+							"value": "100"
+						},
+						{
+							"key": "to",
+							"value": "2000000000"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
