@@ -73,6 +73,32 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Fetch Current API And Contract Prices",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:1323/api/price?symbol=ethereum",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1323",
+					"path": [
+						"api",
+						"price"
+					],
+					"query": [
+						{
+							"key": "symbol",
+							"value": "ethereum"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

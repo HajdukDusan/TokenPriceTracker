@@ -1,11 +1,13 @@
 package server
 
 import (
+	"backendtask/blockchain"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-func Start(contractAddress string) {
+func Start(priceSetter *blockchain.Contract) {
 	e := echo.New()
 
 	// Middleware
@@ -17,7 +19,9 @@ func Start(contractAddress string) {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	CreateSymbolPriceHistoryEndpoint(e, contractAddress)
+	// create api endpoints
+	CreateSymbolPriceEndpoint(e, priceSetter)
+	CreateSymbolPriceHistoryEndpoint(e, priceSetter)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

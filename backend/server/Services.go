@@ -10,6 +10,37 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+func FetchSymbolDTOPrice(symbol string, priceSetter *blockchain.Contract) (*dto.PriceDTO, error) {
+
+	// get symbol price from contract
+	contractPrice, err := priceSetter.GetSymbolPrice(symbol)
+	if err != nil {
+		return nil, err
+	}
+	floatContractPrice, err := utils.ScaleIntToFloat(contractPrice.Int64())
+	if err != nil {
+		return nil, err
+	}
+
+	coin := map[string]int64{}
+	coin[symbol] = 0
+
+	// get symbol price from API
+	jsonResult, err := GetCoinGeckoPricesForCoins(coin)
+	if err != nil {
+		return nil, err
+	}
+
+	// get price from json
+	result := jsonResult[symbol].(map[string]interface{})
+	floatApiPrice := result["usd"].(float64)
+
+	return &dto.PriceDTO{
+		ApiPrice: floatApiPrice,
+		ContractPrice: floatContractPrice,
+	}, nil
+}
+
 // Fetch DTO events for symbols between timestamps
 func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp *big.Int, symbols []string) ([]dto.PriceChangeEventDTO, error) {
 
@@ -40,7 +71,6 @@ func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp 
 		return nil, err
 	}
 
-
 	// parse event to DTO
 	eventsDTO := make([]dto.PriceChangeEventDTO, 0)
 	for _, event := range events {
@@ -60,13 +90,42 @@ func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp 
 		}
 
 		eventsDTO = append(
-			eventsDTO, dto.PriceChangeEventDTO {
-			BlockNumber: event.BlockNumber,
-			Symbol:      symbolHashMap[event.SymbolHash],	// get symbol from symbolHashMap with symbol hash as key
-			Price:       priceFloat,
-			Timestamp:   event.Timestamp.Uint64(),
-		})
+			eventsDTO, dto.PriceChangeEventDTO{
+				BlockNumber: event.BlockNumber,
+				Symbol:      symbolHashMap[event.SymbolHash], // get symbol from symbolHashMap with symbol hash as key
+				Price:       priceFloat,
+				Timestamp:   event.Timestamp.Uint64(),
+			})
 	}
 
 	return eventsDTO, nil
+}
+
+// Helper function to get coingecko prices.
+// Takes in coins and looks at their symbols
+func GetCoinGeckoPricesForCoins(coins map[string]int64) (map[string]interface{}, error) {
+
+	// create a string of coin symbols so we can get them all in one request
+	ids := ""
+	index := 1
+	for key := range coins {
+		ids += key
+
+		if index != len(coins) {
+			ids += ","
+		}
+		index++
+	}
+
+	// send a http get request and parse response
+	response, err := utils.SendHTTPGetRequest("https://api.coingecko.com/api/v3/simple/price?ids=" + ids + "&vs_currencies=usd")
+	if err != nil {
+		return nil, err
+	}
+	jsonResponse, err := utils.ParseJSONResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonResponse, nil
 }

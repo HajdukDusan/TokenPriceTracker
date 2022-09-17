@@ -26,7 +26,13 @@ func main() {
 	privateKey := os.Getenv("PRIVATE_KEY")
 
 	// try to initialize the client
-	blockchain.Connect(rpcUrl, contractAddress, privateKey)
+	blockchain.Connect(rpcUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	// initialize the priceSetter api
+	priceSetterContract, err := blockchain.CreateContractAPI(contractAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +45,7 @@ func main() {
 
 	// launch update goroutine
 	// maps are passed by ref so no need for pointers
-	go routines.UpdatePrices(coins)
+	go routines.UpdatePrices(coins, priceSetterContract, privateKey)
 
-	server.Start(contractAddress)
+	server.Start(priceSetterContract)
 }

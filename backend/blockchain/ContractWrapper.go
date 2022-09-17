@@ -9,6 +9,7 @@ import (
 )
 
 type Contract struct {
+	Address string
 	*api.Api
 }
 

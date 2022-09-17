@@ -20,21 +20,21 @@ import (
 //
 // The next TxBlock will override pending transactions of the previous block.
 //
-// Params of the anonymous function are contract call params.
-func CreateTxBlock() func(string, *big.Int) (*types.Transaction, error) {
+// Params of the anonymous function are contract wrapper and contract call params.
+func CreateTxBlock(privateKey string) func(*Contract, string, *big.Int) (*types.Transaction, error) {
 
-	auth, err := getAccountAuth(PrivateKey)
+	auth, err := getAccountAuth(privateKey)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return func(symbol string, price *big.Int) (*types.Transaction, error) {
+	return func(contract *Contract, symbol string, price *big.Int) (*types.Transaction, error) {
 
 		fmt.Println("\nSending with:")
 		fmt.Println("nonce = ", auth.Nonce)
 		fmt.Println("gasPrice = ", auth.GasPrice)
 
-		tx, err := PriceSetterContract.SetSymbolPrice(auth, symbol, price)
+		tx, err := contract.SetSymbolPrice(auth, symbol, price)
 		if err != nil {
 			return nil, err
 		}
