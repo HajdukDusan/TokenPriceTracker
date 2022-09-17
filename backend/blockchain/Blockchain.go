@@ -11,26 +11,29 @@ var Client *ethclient.Client
 var PriceSetterContract Contract
 var PrivateKey string
 
-func Connect(rpcUrl string, contractAddress string, privateKey string) {
+// Connect to rpc node and initialize client
+func Connect(rpcUrl string, contractAddress string, privateKey string) error {
 
 	var err error
 
-	// connect to rpc node
 	Client, err = ethclient.Dial(rpcUrl)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	address := common.HexToAddress(contractAddress)
 
-	// creating api object to intract with smart contract function
+	// creating api object to interact with smart contract functions
 	api, err := api.NewApi(address, Client)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
+	// wrap the api into Contract struct
 	PriceSetterContract = Contract{api}
 
 	PrivateKey = privateKey
+
+	return nil
 }
 

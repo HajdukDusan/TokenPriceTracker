@@ -10,14 +10,19 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+// Fetch DTO events for symbols between timestamps
 func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp *big.Int, symbols []string) ([]dto.PriceChangeEventDTO, error) {
 
+	// for loading the symbol hash values
 	indexedValues := make([]common.Hash, len(symbols))
+
+	// for retrieving the symbol from its hash value
 	symbolHashMap := make(map[string]string)
 
-	// hash the array of symbols because they are indexed in events
 	for indx := range symbols {
 		hash := crypto.Keccak256Hash([]byte(symbols[indx]))
+
+		// hash the array of symbols because they are indexed in events
 		indexedValues[indx] = hash
 		symbolHashMap[hash.Hex()] = symbols[indx]
 	}
@@ -35,12 +40,12 @@ func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp 
 		return nil, err
 	}
 
+
+	// parse event to DTO
 	eventsDTO := make([]dto.PriceChangeEventDTO, 0)
-
-
 	for _, event := range events {
 
-		// skip events that are not in timestamp range
+		// filter events that are not in timestamp range
 		if event.Timestamp.Cmp(fromTimestamp) == -1 {
 			continue
 		}
@@ -48,6 +53,7 @@ func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp 
 			continue
 		}
 
+		// scale to float representation
 		priceFloat, err := utils.ScaleIntToFloat(event.Price.Int64())
 		if err != nil {
 			return nil, err

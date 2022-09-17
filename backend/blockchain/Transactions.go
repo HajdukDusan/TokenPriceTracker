@@ -8,6 +8,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -48,7 +49,7 @@ func CreateTxBlock() func(string, *big.Int) (*types.Transaction, error) {
 // Function to create auth from privateKey
 func getAccountAuth(privateKey string) (*bind.TransactOpts, error) {
 
-	// check if the rpc conn is initialized
+	// check if the rpc connection is initialized
 	if Client == nil {
 		return nil, errors.New("RPC connection is not initialized, try to call Connect() first...")
 	}
@@ -58,15 +59,12 @@ func getAccountAuth(privateKey string) (*bind.TransactOpts, error) {
 		return nil, err
 	}
 
-	publicKey := privKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
+	fromAddress, err := getAccountAddressFromPrivateKey(privKey)
+	if err != nil {
 		return nil, err
 	}
 
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	// nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	// get the current nonce of passed txs, ignore pending txs
 	nonce, err := Client.NonceAt(context.Background(), fromAddress, nil)
 	if err != nil {
 		return nil, err
@@ -88,12 +86,20 @@ func getAccountAuth(privateKey string) (*bind.TransactOpts, error) {
 	}
 
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)      // in wei
-	auth.GasLimit = uint64(3000000) // in units
-
-	// gasPrice x2 for fast mining
-	// auth.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(2))
+	auth.GasLimit = uint64(3000000)
 	auth.GasPrice = gasPrice
 
 	return auth, nil
+}
+
+// Helper function to get the account address from private key
+func getAccountAddressFromPrivateKey(privateKey *ecdsa.PrivateKey) (common.Address, error) {
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return [common.AddressLength]byte{}, errors.New("Failed to recognize ECDSA in public key")
+	}
+
+	return crypto.PubkeyToAddress(*publicKeyECDSA), nil
 }

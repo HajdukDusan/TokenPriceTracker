@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// Safely scales a float64 to integer value using strings.
+// The scaling factor of decimal places is determined in the config.
 func ScaleFloatToInt(num float64) (int64, error) {
 
 	float_str := strconv.FormatFloat(num, 'f', config.DecimalPoints+1, 64)
@@ -38,6 +40,8 @@ func ScaleFloatToInt(num float64) (int64, error) {
 	return result, nil
 }
 
+// Returns a float value from scaled integer.
+// The scaling factor of decimal places is determined in the config.
 func ScaleIntToFloat(num int64) (float64, error) {
 
 	int_str := strings.Repeat("0", config.DecimalPoints) + strconv.FormatInt(num, 10)
@@ -49,6 +53,7 @@ func ScaleIntToFloat(num int64) (float64, error) {
 	return strconv.ParseFloat(float_str, 64)
 }
 
+// Return an abs value of big.int.
 func GetAbs(num *big.Int) *big.Int {
 	if num.Cmp(big.NewInt(0)) == -1 {
 		num.Neg(num)

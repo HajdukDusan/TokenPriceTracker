@@ -33,7 +33,7 @@ func FetchEvents(
 	indexedValues [][]common.Hash,
 ) ([]model.PriceChangeEvent, error) {
 
-	// check if the rpc conn is initialized
+	// check if the rpc connection is initialized
 	if Client == nil {
 		return nil, errors.New("RPC connection is not initialized, try to call Connect() first...")
 	}
@@ -47,6 +47,7 @@ func FetchEvents(
 		toBlock = big.NewInt(int64(currBlock))
 	}
 
+	// create a query for filtering logs
 	query := ethereum.FilterQuery{
 		FromBlock: fromBlock,
 		ToBlock:   toBlock,
@@ -54,14 +55,22 @@ func FetchEvents(
 		Topics:    indexedValues,
 	}
 
-	logs, err := Client.FilterLogs(context.Background(), query)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return getEventsFromLogs(query)
+}
 
+// helper function for fetching and parsing logs
+func getEventsFromLogs(query ethereum.FilterQuery) ([]model.PriceChangeEvent, error) {
+	
+	// get a contract abi to unpack log data
 	contractAbi, err := abi.JSON(strings.NewReader(string(api.ApiABI)))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+
+	// fetch all the logs that pass the query filter
+	logs, err := Client.FilterLogs(context.Background(), query)
+	if err != nil {
+		return nil, err
 	}
 
 	events := make([]model.PriceChangeEvent, len(logs))
@@ -80,6 +89,5 @@ func FetchEvents(
 
 		events[indx] = event
 	}
-
 	return events, nil
 }
