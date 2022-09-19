@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-// Safely scales a float64 to integer value using strings.
+// Safely scales a float64 to big.Int value using strings.
 // The scaling factor of decimal places is determined in the config.
-func ScaleFloatToInt(num float64) (int64, error) {
+func ScaleFloatToBigInt(num float64) (*big.Int, error) {
 
 	float_str := strconv.FormatFloat(num, 'f', config.DecimalPoints+1, 64)
 
@@ -32,19 +32,20 @@ func ScaleFloatToInt(num float64) (int64, error) {
 		int_str = float_str
 	}
 
-	result, err := strconv.ParseInt(int_str, 10, 64)
-	if err != nil {
-		return 0, errors.New("Failed to parse float!")
-	}
+	result := new(big.Int)
+	result, ok := result.SetString(int_str, 10)
+	if !ok {
+        return nil, errors.New("Failed to parse float!")
+    }
 
 	return result, nil
 }
 
-// Returns a float value from scaled integer.
+// Returns a float value from scaled big.Int.
 // The scaling factor of decimal places is determined in the config.
-func ScaleIntToFloat(num int64) (float64, error) {
+func ScaleBigIntToFloat(num *big.Int) (float64, error) {
 
-	int_str := strings.Repeat("0", config.DecimalPoints) + strconv.FormatInt(num, 10)
+	int_str := strings.Repeat("0", config.DecimalPoints) + num.String()
 
 	comma_point := len(int_str)-config.DecimalPoints
 

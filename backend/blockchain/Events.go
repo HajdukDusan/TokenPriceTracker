@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // Is used to fetch contract PriceChange events.
@@ -58,6 +59,47 @@ func FetchEvents(
 	return getEventsFromLogs(query)
 }
 
+
+func SubscribeToEvent(addresses []common.Address, eventCh chan *model.PriceChangeEvent) {
+
+	query := ethereum.FilterQuery{
+        Addresses: addresses,
+    }
+
+    logs := make(chan types.Log)
+    sub, err := Client.SubscribeFilterLogs(context.Background(), query, logs)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+	// get a contract abi to unpack log data
+	contractAbi, err := abi.JSON(strings.NewReader(string(api.ApiABI)))
+	if err != nil {
+		fmt.Println("Subscribe: ", err)
+        return
+	}
+
+    for {
+        select {
+        case err := <-sub.Err():
+            fmt.Println(err)
+        case log := <-logs:
+
+			var event model.PriceChangeEvent
+	
+			err := contractAbi.UnpackIntoInterface(&event, "PriceChange", log.Data)
+			if err != nil {
+				fmt.Println("Error parsing event: ", err)
+			}
+	
+			event.BlockNumber = log.BlockNumber
+			event.SymbolHash = log.Topics[1].Hex()
+
+			eventCh <- &event
+        }
+    }
+}
+
 // helper function for fetching and parsing logs
 func getEventsFromLogs(query ethereum.FilterQuery) ([]model.PriceChangeEvent, error) {
 	
@@ -81,7 +123,7 @@ func getEventsFromLogs(query ethereum.FilterQuery) ([]model.PriceChangeEvent, er
 
 		err := contractAbi.UnpackIntoInterface(&event, "PriceChange", vLog.Data)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		event.BlockNumber = vLog.BlockNumber

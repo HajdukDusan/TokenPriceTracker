@@ -3,6 +3,7 @@ package server
 import (
 	"backendtask/blockchain"
 	"backendtask/dto"
+	"backendtask/model"
 	"backendtask/utils"
 	"math/big"
 
@@ -17,13 +18,13 @@ func FetchSymbolDTOPrice(symbol string, priceSetter *blockchain.Contract) (*dto.
 	if err != nil {
 		return nil, err
 	}
-	floatContractPrice, err := utils.ScaleIntToFloat(contractPrice.Int64())
+	floatContractPrice, err := utils.ScaleBigIntToFloat(contractPrice)
 	if err != nil {
 		return nil, err
 	}
 
-	coin := map[string]int64{}
-	coin[symbol] = 0
+	coin := map[string]*big.Int{}
+	coin[symbol] = nil
 
 	// get symbol price from API
 	jsonResult, err := GetCoinGeckoPricesForCoins(coin)
@@ -62,10 +63,7 @@ func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp 
 		[]common.Address{common.HexToAddress(contractAddress)},
 		nil,
 		nil,
-		[][]common.Hash{
-			{},
-			indexedValues,
-		},
+		[][]common.Hash{{}, indexedValues},
 	)
 	if err != nil {
 		return nil, err
@@ -76,34 +74,37 @@ func FetchDTOEvents(contractAddress string, fromTimestamp *big.Int, toTimestamp 
 	for _, event := range events {
 
 		// filter events that are not in timestamp range
-		if event.Timestamp.Cmp(fromTimestamp) == -1 {
+		if event.Timestamp.Cmp(fromTimestamp) == -1 || event.Timestamp.Cmp(toTimestamp) == 1{
 			continue
 		}
-		if event.Timestamp.Cmp(toTimestamp) == 1 {
-			continue
-		}
-
-		// scale to float representation
-		priceFloat, err := utils.ScaleIntToFloat(event.Price.Int64())
+		eventDTO, err := ConvertPriceEventToDTO(event, symbolHashMap)
 		if err != nil {
 			return nil, err
 		}
-
-		eventsDTO = append(
-			eventsDTO, dto.PriceChangeEventDTO{
-				BlockNumber: event.BlockNumber,
-				Symbol:      symbolHashMap[event.SymbolHash], // get symbol from symbolHashMap with symbol hash as key
-				Price:       priceFloat,
-				Timestamp:   event.Timestamp.Uint64(),
-			})
+		eventsDTO = append(eventsDTO, *eventDTO)
 	}
 
 	return eventsDTO, nil
 }
 
+func ConvertPriceEventToDTO(event model.PriceChangeEvent, symbolHashMap map[string]string) (*dto.PriceChangeEventDTO, error) {
+	// scale to float representation
+	priceFloat, err := utils.ScaleBigIntToFloat(event.Price)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.PriceChangeEventDTO{
+			BlockNumber: event.BlockNumber,
+			Symbol:      symbolHashMap[event.SymbolHash], // get symbol from symbolHashMap with symbol hash as key
+			Price:       priceFloat,
+			Timestamp:   event.Timestamp,
+		}, nil
+}
+
 // Helper function to get coingecko prices.
 // Takes in coins and looks at their symbols
-func GetCoinGeckoPricesForCoins(coins map[string]int64) (map[string]interface{}, error) {
+func GetCoinGeckoPricesForCoins(coins map[string]*big.Int) (map[string]interface{}, error) {
 
 	// create a string of coin symbols so we can get them all in one request
 	ids := ""

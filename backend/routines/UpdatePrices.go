@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // Goroutine for updating the prices in PriceSetter contract
-func UpdatePrices(coins map[string]int64, priceSetter *blockchain.Contract, privKey string) {
+func UpdatePrices(coins map[string]*big.Int, priceSetter *blockchain.Contract, privKey string) {
 
 	for true {
 
@@ -31,7 +34,7 @@ func UpdatePrices(coins map[string]int64, priceSetter *blockchain.Contract, priv
 
 // Helper function to update contract coin prices.
 // Sends txs as a block, which overrides pending txs when called next time.
-func updateContractCoinPrices(coins map[string]int64, priceSetter *blockchain.Contract, privKey string) {
+func updateContractCoinPrices(coins map[string]*big.Int, priceSetter *blockchain.Contract, privKey string) {
 
 	// Init the block of txs
 	SendTx := blockchain.CreateTxBlock(privKey)
@@ -44,16 +47,20 @@ func updateContractCoinPrices(coins map[string]int64, priceSetter *blockchain.Co
 			fmt.Println(err)
 		}
 
-		absDif := utils.GetAbs(big.NewInt(0).Sub(contractPrice, big.NewInt(price)))
+		absDif := utils.GetAbs(big.NewInt(0).Sub(contractPrice, price))
 		minDif := big.NewInt(2)
 
 		// check if new price difference is more than 2%
 		if absDif.Mul(absDif, big.NewInt(100)).Cmp(minDif.Mul(contractPrice, minDif)) == 1 {
 
-			fmt.Println("Updating " + symbol + " price...")
+			fmt.Println("\nUpdating " + symbol + " price...")
 
-			// send tx to mempool
-			tx, err := SendTx(priceSetter, symbol, big.NewInt(price))
+			// SendTx needs a func param that sends the tx to mempool
+			funcToExecute := func(auth *bind.TransactOpts) (*types.Transaction, error) {
+				return priceSetter.SetSymbolPrice(auth, symbol, price)
+			}
+
+			tx, err := SendTx(funcToExecute)
 			if err != nil {
 				fmt.Println("Failed to send tx!")
 				fmt.Println(err)
@@ -66,7 +73,7 @@ func updateContractCoinPrices(coins map[string]int64, priceSetter *blockchain.Co
 
 // Helper function to update coin prices.
 // Takes in coins to update and their new prices.
-func updateCoinPrices(coins map[string]int64, newPrices map[string]interface{}) {
+func updateCoinPrices(coins map[string]*big.Int, newPrices map[string]interface{}) {
 
 	fmt.Println("\nNew Prices:")
 
@@ -77,7 +84,7 @@ func updateCoinPrices(coins map[string]int64, newPrices map[string]interface{}) 
 		fmt.Printf("\t" + key + " -> %f USD\n", price)
 
 		// scale price to int, dont multiply because its a float value
-		result, err := utils.ScaleFloatToInt(price)
+		result, err := utils.ScaleFloatToBigInt(price)
 		if err != nil {
 			fmt.Println(err)
 			continue

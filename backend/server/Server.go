@@ -10,18 +10,15 @@ import (
 func Start(priceSetter *blockchain.Contract) {
 	e := echo.New()
 
-	// Middleware
-	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-	// 	AllowOrigins: []string{"*"},
-	// 	AllowMethods: []string{echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
-	// }))
-
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	// create api endpoints
 	CreateSymbolPriceEndpoint(e, priceSetter)
 	CreateSymbolPriceHistoryEndpoint(e, priceSetter)
+
+	// create socket channel
+	CreateSocketChannel(e, priceSetter)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

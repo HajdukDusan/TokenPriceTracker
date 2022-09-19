@@ -14,4 +14,5 @@ var Symbols = []string{
 	"tether",
 	"litecoin",
 	"decentraland",
+	"ravencoin",
 }

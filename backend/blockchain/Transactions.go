@@ -14,35 +14,55 @@ import (
 )
 
 // CreateTxBlock is a higher-order function for sending multiple transactions.
-//
 // This function will ensure that transactions dont get stuck in the pending state
-// when we send the TxBlock again.
+// when we send the TxBlock again. The next TxBlock will override pending
+// transactions of the previous block.
 //
-// The next TxBlock will override pending transactions of the previous block.
+// Usage:
 //
-// Params of the anonymous function are contract wrapper and contract call params.
-func CreateTxBlock(privateKey string) func(*Contract, string, *big.Int) (*types.Transaction, error) {
+// - First Call - Creates a new block of tx, Returns a func that is used for sending individual txs in that block.
+// Takes in a private key for signing txs.
+//
+// - Second Call - Takes in a func that should send the tx to the mempool and return results.
+// 				   txFunction example:
+// 					func(auth *bind.TransactOpts) (*types.Transaction, error) {
+// 						return yourContractApi.FunctionCall(auth, param1, param2..)
+// 					}
+//
+func CreateTxBlock(privateKey string) func(txFunction func(*bind.TransactOpts) (*types.Transaction, error)) (*types.Transaction, error) {
 
 	auth, err := getAccountAuth(privateKey)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return func(contract *Contract, symbol string, price *big.Int) (*types.Transaction, error) {
-
-		fmt.Println("\nSending with:")
+	return func(txFunction func(*bind.TransactOpts) (*types.Transaction, error)) (*types.Transaction, error) {
+		fmt.Println("Sending with:")
 		fmt.Println("nonce = ", auth.Nonce)
 		fmt.Println("gasPrice = ", auth.GasPrice)
 
-		tx, err := contract.SetSymbolPrice(auth, symbol, price)
-		if err != nil {
-			return nil, err
+		// try 3 times to increase the gas price
+		for i:=0; i < 3; i++{
+			// send tx to mempool
+			tx, err := txFunction(auth)
+			if err != nil {
+
+				// if the gas price is lower than the last block gas price we add 10% and try again
+				if err.Error() == "replacement transaction underpriced" {
+					addition := big.NewInt(0)
+					addition.Div(auth.GasPrice, big.NewInt(10))
+					auth.GasPrice.Add(auth.GasPrice, addition)
+					continue
+				}
+
+				return nil, err
+			}
+			// if tx was sent into the mempool we inc the nonce
+			auth.Nonce.Add(auth.Nonce, big.NewInt(1))
+
+			return tx, nil
 		}
-
-		// if tx was sent into the mempool we inc the nonce
-		auth.Nonce.Add(auth.Nonce, big.NewInt(1))
-
-		return tx, nil
+		return nil, errors.New("Pending tx has a high gas price")
 	}
 }
 

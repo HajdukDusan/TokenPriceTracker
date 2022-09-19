@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/big"
 	"os"
 
 	"backendtask/blockchain"
@@ -22,7 +23,7 @@ func main() {
 	}
 
 	contractAddress := os.Getenv("PRICE_SETTER_ADDRESS")
-	rpcUrl := os.Getenv("GOERLI_RPC_URL")
+	rpcUrl := os.Getenv("GOERLI_RPC_WS_URL")
 	privateKey := os.Getenv("PRIVATE_KEY")
 
 	// try to initialize the client
@@ -38,9 +39,9 @@ func main() {
 	}
 
 	// create a map of coins from all symbols in config
-	var coins = make(map[string]int64)
+	var coins = make(map[string]*big.Int)
 	for _, symbol := range config.Symbols {
-		coins[symbol] = 0
+		coins[symbol] = nil
 	}
 
 	// launch update goroutine
