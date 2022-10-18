@@ -22,7 +22,7 @@ Adding a new token to be tracked is done by adding its Coingecko ID in the symbo
 ```
 
 
-### Endpoints:
+### Endpoints
 
 - API endpoint for retrieving the price history of a token in the specified timestamp period.
 
@@ -37,3 +37,7 @@ Adding a new token to be tracked is done by adding its Coingecko ID in the symbo
     `
 
 - Web Socket subscription for on-chain price change events.
+
+### Setup
+1. Create a .env file and fill the information specified in the .env.dev file.
+2. Run the make file. It will generate the relevant abi and bin files from the smart contract.
